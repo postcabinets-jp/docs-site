@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# docs-site
 
-## Getting Started
+GitBook の代替として使えるセルフホスト型ドキュメントプラットフォーム。$65/月のカスタムドメイン課金や $12/ユーザー課金なしで、チームのドキュメントを管理・公開できます。
 
-First, run the development server:
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fpostcabinets-jp%2Fdocs-site&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,NEXT_PUBLIC_SITE_URL&envDescription=Supabase+project+credentials&project-name=docs-site&repository-name=docs-site)
+
+## 機能
+
+- **ブロックエディタ** — スラッシュコマンドで見出し・コードブロック・コールアウトを挿入
+- **GitHub 双方向同期** — リポジトリの Markdown と双方向同期、変更は PR として送信
+- **カスタムドメイン無料** — セルフホストなので追加コストゼロ
+- **リアルタイム協調編集** — Yjs ベースの CRDT でコンフリクトなし
+- **セマンティック検索** — BYOK（自分の OpenAI キー）でベクトル検索、未設定時は全文検索へフォールバック
+- **プライバシーファースト分析** — クッキーなし・IP 非保存で GDPR 準拠
+- **チームメンバー管理** — Organization/Editor/Viewer ロールとスペース単位のアクセス制御
+- **ページ評価** — 各ページに👍👎フィードバック、集計ダッシュボードで改善優先度を可視化
+- **リダイレクト管理** — GUI で 301/302 リダイレクト設定、ドキュメント再構成時の SEO を維持
+
+## Quick Start
+
+### 1. Supabase プロジェクトを作成
+
+[supabase.com](https://supabase.com) で新規プロジェクトを作成し、マイグレーションを適用します：
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Supabase CLI でローカル環境を起動
+supabase start
+
+# マイグレーション適用
+supabase db push
+
+# サンプルデータ投入（オプション）
+supabase db seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 環境変数を設定
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.env.local` に Supabase の認証情報を設定：
 
-## Learn More
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. 開発サーバーを起動
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+[http://localhost:3000](http://localhost:3000) を開いてください。
 
-## Deploy on Vercel
+### Vercel への 1 クリックデプロイ
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+上の「Deploy with Vercel」ボタンをクリックし、Supabase の認証情報を入力するだけで完了です。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+| レイヤー | 技術 |
+|---|---|
+| フレームワーク | Next.js 15 (App Router, TypeScript strict) |
+| データベース・認証 | Supabase (PostgreSQL + RLS + Auth) |
+| スタイリング | Tailwind CSS v4 + shadcn/ui |
+| デプロイ | Vercel |
+
+## データベース構成
+
+- **organizations** — 組織（テナント）
+- **organization_members** — メンバーとロール（owner/editor/viewer）
+- **sites** — 公開ドキュメントサイト（カスタムドメイン対応）
+- **spaces** — サイト内のコンテンツグループ（GitHub 同期設定）
+- **pages** — ページ（ツリー構造、parent_id で入れ子）
+- **page_versions** — ページコンテンツのバージョン管理
+- **site_analytics** — プライバシーファーストな PV 計測
+- **page_ratings** — 👍👎 フィードバック
+
+すべてのテーブルに Row Level Security (RLS) が設定されています。
+
+## License
+
+MIT
+
+---
+
+Built by [POST CABINETS](https://postcabinets.co.jp)
