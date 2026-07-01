@@ -11,7 +11,7 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
   const [state, formAction, pending] = useActionState(
     async (prev: { error?: string } | undefined, formData: FormData) => {
-      const result = await forgotPassword(formData)
+      const result = await forgotPassword(prev, formData)
       if (!result.error) setSent(true)
       return result
     },

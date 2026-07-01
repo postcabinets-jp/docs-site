@@ -79,7 +79,7 @@ export async function logout() {
   redirect('/login')
 }
 
-export async function forgotPassword(formData: FormData): Promise<AuthActionResult> {
+export async function forgotPassword(_prev: AuthActionResult | undefined, formData: FormData): Promise<AuthActionResult> {
   const email = formData.get('email') as string
   if (!email || !z.string().email().safeParse(email).success) {
     return { error: '有効なメールアドレスを入力してください' }

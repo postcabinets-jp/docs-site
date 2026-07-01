@@ -210,7 +210,14 @@ alter table spaces enable row level security;
 create policy "spaces are readable based on site visibility"
   on spaces for select
   using (
-    site_id in (select id from sites)
+    site_id in (
+      select id from sites
+      where visibility = 'public'
+      or organization_id in (
+        select organization_id from organization_members
+        where user_id = auth.uid()
+      )
+    )
   );
 
 create policy "org editors can manage spaces"
@@ -246,7 +253,15 @@ alter table pages enable row level security;
 create policy "pages readable based on space/site visibility"
   on pages for select
   using (
-    space_id in (select id from spaces)
+    space_id in (
+      select sp.id from spaces sp
+      join sites s on s.id = sp.site_id
+      where s.visibility = 'public'
+      or s.organization_id in (
+        select organization_id from organization_members
+        where user_id = auth.uid()
+      )
+    )
   );
 
 create policy "org editors can manage pages"
@@ -278,7 +293,16 @@ alter table page_versions enable row level security;
 create policy "page versions readable based on page visibility"
   on page_versions for select
   using (
-    page_id in (select id from pages)
+    page_id in (
+      select p.id from pages p
+      join spaces sp on sp.id = p.space_id
+      join sites s on s.id = sp.site_id
+      where s.visibility = 'public'
+      or s.organization_id in (
+        select organization_id from organization_members
+        where user_id = auth.uid()
+      )
+    )
   );
 
 create policy "org editors can write page versions"

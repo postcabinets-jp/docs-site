@@ -120,7 +120,7 @@ insert into page_versions (page_id, content, is_current) values
       "blocks": [
         {"id": "1", "type": "heading", "props": {"level": 1}, "content": [{"type": "text", "text": "Accept a Payment"}]},
         {"id": "2", "type": "paragraph", "content": [{"type": "text", "text": "Stripe の Payment Intents API を使用して、安全な支払いフローを実装する方法を説明します。SCA（Strong Customer Authentication）に完全準拠した実装が可能です。"}]},
-        {"id": "3", "type":="heading", "props": {"level": 2}, "content": [{"type": "text", "text": "実装手順"}]},
+        {"id": "3", "type": "heading", "props": {"level": 2}, "content": [{"type": "text", "text": "実装手順"}]},
         {"id": "4", "type": "numberedListItem", "content": [{"type": "text", "text": "サーバーサイドで PaymentIntent を作成"}]},
         {"id": "5", "type": "numberedListItem", "content": [{"type": "text", "text": "クライアントの Stripe.js に client_secret を渡す"}]},
         {"id": "6", "type": "numberedListItem", "content": [{"type": "text", "text": "stripe.confirmPayment() で支払いを確定"}]},
