@@ -3,18 +3,25 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createPageSchema, updatePageSchema, idSchema, slugSchema } from '@/lib/validations'
 
-interface CreatePageArgs {
+export async function createPage(args: {
   spaceId: string
   orgSlug: string
   siteSlug: string
   spaceSlug: string
-}
-
-export async function createPage({ spaceId, orgSlug, siteSlug, spaceSlug }: CreatePageArgs) {
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const parsed = createPageSchema.safeParse(args)
+  if (!parsed.success) {
+    console.error('Validation error:', parsed.error.issues[0]?.message)
+    return
+  }
+
+  const { spaceId, orgSlug, siteSlug, spaceSlug } = parsed.data
 
   // Get current max position
   const { data: existing } = await supabase
@@ -56,7 +63,7 @@ export async function createPage({ spaceId, orgSlug, siteSlug, spaceSlug }: Crea
   redirect(`/${orgSlug}/${siteSlug}/spaces/${spaceSlug}/pages/${page.slug}/edit`)
 }
 
-interface UpdatePageArgs {
+export async function updatePage(args: {
   pageId: string
   title?: string
   published?: boolean
@@ -65,21 +72,17 @@ interface UpdatePageArgs {
   siteSlug: string
   spaceSlug: string
   pageSlug: string
-}
-
-export async function updatePage({
-  pageId,
-  title,
-  published,
-  content,
-  orgSlug,
-  siteSlug,
-  spaceSlug,
-  pageSlug,
-}: UpdatePageArgs) {
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+
+  const parsed = updatePageSchema.safeParse(args)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'バリデーションエラー' }
+  }
+
+  const { pageId, title, published, content, orgSlug, siteSlug, spaceSlug, pageSlug } = parsed.data
 
   if (title !== undefined || published !== undefined) {
     const { error } = await supabase
@@ -120,6 +123,14 @@ export async function deletePage(pageId: string, orgSlug: string, siteSlug: stri
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+
+  const idResult = idSchema.safeParse(pageId)
+  const orgResult = slugSchema.safeParse(orgSlug)
+  const siteResult = slugSchema.safeParse(siteSlug)
+  const spaceResult = slugSchema.safeParse(spaceSlug)
+  if (!idResult.success || !orgResult.success || !siteResult.success || !spaceResult.success) {
+    return { error: '無効なパラメータです' }
+  }
 
   const { error } = await supabase.from('pages').delete().eq('id', pageId)
   if (error) return { error: error.message }
